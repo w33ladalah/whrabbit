@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp QR Code</title>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f2f5;
+        }
+        .container {
+            text-align: center;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #128C7E;
+            margin-bottom: 20px;
+        }
+        #qrcode {
+            margin: 20px 0;
+        }
+        .status {
+            margin-top: 20px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>WhatsApp QR Code</h1>
+        <div id="qrcode"></div>
+        <div id="status" class="status">Waiting for QR code...</div>
+    </div>
+    <script>
+        const ws = new WebSocket('ws://' + window.location.host + '/ws');
+        const statusElement = document.getElementById('status');
+        const qrcodeElement = document.getElementById('qrcode');
+
+        ws.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            if (data.type === 'qr') {
+                // Generate QR code
+                const qr = qrcode(0, 'L');
+                qr.addData(data.code);
+                qr.make();
+                qrcodeElement.innerHTML = qr.createImgTag(5);
+                statusElement.textContent = 'Scan this QR code with WhatsApp on your phone';
+            }
+        };
+
+        ws.onclose = function() {
+            statusElement.textContent = 'Connection closed. Please refresh the page.';
+        };
+
+        ws.onerror = function() {
+            statusElement.textContent = 'Connection error. Please refresh the page.';
+        };
+    </script>
+</body>
+</html>
