@@ -32,3 +32,6 @@ go.work
 *.swo
 whrabbit
 whrabbit.*
+
+built/*
+!built/.gitkeep
