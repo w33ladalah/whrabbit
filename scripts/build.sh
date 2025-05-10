@@ -10,6 +10,13 @@ if [ -f .env ]; then
     export "$(grep -v '^#' .env | xargs)"
 fi
 
+# Copy static directory to build dir
+if [ -d "static" ]; then
+    cp -r static build/
+else
+    echo "Warning: static directory not found"
+fi
+
 # Build with ldflags
 go build -ldflags "\
     -X 'github.com/w33ladalah/whrabbit/internal/config.AppName=${APP_NAME:-whrabbit}' \
