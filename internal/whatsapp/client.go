@@ -33,8 +33,7 @@ func NewClient(dbPath string) (*Client, error) {
 		return nil, fmt.Errorf("error creating database container: %v", err)
 	}
 
-	cfg := config.LoadConfig()
-	store.DeviceProps.Os = proto.String(cfg.AppName)
+	store.DeviceProps.Os = proto.String(config.GetAppName())
 	store.DeviceProps.Version = &waProto.DeviceProps_AppVersion{
 		Primary:   proto.Uint32(1),
 		Secondary: proto.Uint32(0),

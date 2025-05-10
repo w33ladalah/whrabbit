@@ -2,16 +2,16 @@ package middleware
 
 import (
 	"net/http"
-	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/w33ladalah/whrabbit/internal/config"
 )
 
 // APIKeyAuth middleware checks for valid API key
 func APIKeyAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		apiKey := c.GetHeader("X-API-Key")
-		expectedKey := os.Getenv("API_KEY")
+		expectedKey := config.GetAPIKey()
 
 		if apiKey == "" || apiKey != expectedKey {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or missing API key"})

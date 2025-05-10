@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -10,6 +11,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	_ "github.com/mattn/go-sqlite3" // SQLite driver
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -41,10 +43,9 @@ import (
 // @description Type "Bearer" followed by a space and JWT token.
 
 func main() {
-	// Load configuration
-	cfg := config.LoadConfig()
-	if cfg.APIKey == "" {
-		log.Fatal("API_KEY environment variable is required")
+	// Load environment variables
+	if err := godotenv.Load(); err != nil {
+		fmt.Println("Error loading environment variables:", err)
 	}
 
 	// Initialize WhatsApp client
@@ -63,17 +64,18 @@ func main() {
 	// Initialize router
 	router := gin.Default()
 
+	fmt.Println("Base URL:", config.GetBaseURL())
+
 	// Swagger documentation
 	docs.SwaggerInfo.Title = "Whrabbit WhatsApp API"
 	docs.SwaggerInfo.Description = "An unofficial WhatsApp API built with Go and whatsmeow."
 	docs.SwaggerInfo.Version = "1.0"
-	docs.SwaggerInfo.Host = cfg.BaseURL
+	docs.SwaggerInfo.Host = config.GetBaseURL()
 	docs.SwaggerInfo.BasePath = "/api/v1"
 	docs.SwaggerInfo.Schemes = []string{"http", "https"}
 
 	// Serve static files
 	router.Static("/static", "./static")
-	router.LoadHTMLGlob("static/*.html")
 
 	// WebSocket endpoint
 	router.GET("/ws", wsHandler.HandleWebSocket)
@@ -92,17 +94,18 @@ func main() {
 
 	// Serve index.html at root
 	router.GET("/", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "index.html", nil)
+		c.File("./static/index.html")
 	})
 
 	// Create HTTP server
 	srv := &http.Server{
-		Addr:    ":" + cfg.ServerPort,
+		Addr:    ":" + config.GetServerPort(),
 		Handler: router,
 	}
 
 	// Start server in a goroutine
 	go func() {
+		log.Printf("Server starting on port %s...", config.GetServerPort())
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("Error starting server: %v", err)
 		}

@@ -1,10 +1,7 @@
 package config
 
 import (
-	"log"
 	"os"
-
-	"github.com/joho/godotenv"
 )
 
 var (
@@ -14,52 +11,51 @@ var (
 	APIKey     string
 	BaseURL    string
 	ServerPort string
+	AppEnv     string
 )
 
-type Config struct {
-	AppName    string
-	AppVersion string
-	APIKey     string
-	BaseURL    string
-	ServerPort string
+func GetAppName() string {
+	if AppName != "" {
+		return AppName
+	}
+	return os.Getenv("APP_NAME")
 }
 
-func LoadConfig() *Config {
-	// Load .env file
-	if err := godotenv.Load(); err != nil {
-		log.Printf("Warning: Error loading .env file: %v", err)
+func GetAppVersion() string {
+	if AppVersion != "" {
+		return AppVersion
 	}
-
-	// If build-time variables are not set (development mode), use environment variables
-	if APIKey == "" {
-		APIKey = getEnv("API_KEY", "")
-	}
-	if BaseURL == "" {
-		BaseURL = getEnv("BASE_URL", "http://localhost:8080")
-	}
-	if ServerPort == "" {
-		ServerPort = getEnv("PORT", "8080")
-	}
-	if AppName == "" {
-		AppName = getEnv("APP_NAME", "whrabbit")
-	}
-	if AppVersion == "" {
-		AppVersion = getEnv("APP_VERSION", "dev")
-	}
-
-	return &Config{
-		AppName:    AppName,
-		AppVersion: AppVersion,
-		APIKey:     APIKey,
-		BaseURL:    BaseURL,
-		ServerPort: ServerPort,
-	}
+	return os.Getenv("APP_VERSION")
 }
 
-func getEnv(key, defaultValue string) string {
-	value := os.Getenv(key)
-	if value == "" {
-		return defaultValue
+func GetAPIKey() string {
+	if APIKey != "" {
+		return APIKey
 	}
-	return value
+	return os.Getenv("API_KEY")
+}
+
+func GetBaseURL() string {
+	if BaseURL != "" {
+		return BaseURL
+	}
+	return os.Getenv("BASE_URL")
+}
+
+func GetServerPort() string {
+	if ServerPort != "" {
+		return ServerPort
+	}
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080" // Default port
+	}
+	return port
+}
+
+func GetAppEnv() string {
+	if AppEnv != "" {
+		return AppEnv
+	}
+	return os.Getenv("APP_ENV")
 }
