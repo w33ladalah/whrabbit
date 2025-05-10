@@ -1,4 +1,4 @@
-module github.com/hendrowibowo/whrabbit
+module github.com/w33ladalah/whrabbit
 
 go 1.23.0
 

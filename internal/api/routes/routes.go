@@ -2,8 +2,8 @@ package routes
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/hendrowibowo/whrabbit/internal/api/handlers"
-	"github.com/hendrowibowo/whrabbit/internal/whatsapp"
+	"github.com/w33ladalah/whrabbit/internal/api/handlers"
+	"github.com/w33ladalah/whrabbit/internal/whatsapp"
 )
 
 // SetupRouter initializes the router and sets up all routes

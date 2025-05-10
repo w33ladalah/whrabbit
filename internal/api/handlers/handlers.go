@@ -6,8 +6,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
-	ws "github.com/hendrowibowo/whrabbit/internal/api/websocket"
-	"github.com/hendrowibowo/whrabbit/internal/whatsapp"
+	ws "github.com/w33ladalah/whrabbit/internal/api/websocket"
+	"github.com/w33ladalah/whrabbit/internal/whatsapp"
 	"go.mau.fi/whatsmeow/types/events"
 )
 
@@ -50,6 +50,7 @@ func (h *WebSocketHandler) GetManager() *ws.Manager {
 // @Accept json
 // @Produce json
 // @Success 101 {string} string "Switching Protocols"
+// @Failure 500 {object} map[string]string "Error upgrading connection"
 // @Router /ws [get]
 func (h *WebSocketHandler) HandleWebSocket(c *gin.Context) {
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
@@ -92,10 +93,11 @@ func NewMessageHandler(client *whatsapp.Client) *MessageHandler {
 // @Tags messages
 // @Accept json
 // @Produce json
-// @Param message body object true "Message details"
-// @Success 200 {object} map[string]interface{}
-// @Failure 400 {object} map[string]interface{}
-// @Failure 500 {object} map[string]interface{}
+// @Param message body object true "Message details" SchemaExample({"to": "1234567890", "message": "Hello, World!"})
+// @Success 200 {object} map[string]string "Message sent successfully"
+// @Failure 400 {object} map[string]string "Invalid request"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Security Bearer
 // @Router /messages/text [post]
 func (h *MessageHandler) SendText(c *gin.Context) {
 	var req struct {
@@ -126,9 +128,10 @@ func (h *MessageHandler) SendText(c *gin.Context) {
 // @Produce json
 // @Param to formData string true "Recipient's phone number"
 // @Param image formData file true "Image file"
-// @Success 200 {object} map[string]interface{}
-// @Failure 400 {object} map[string]interface{}
-// @Failure 500 {object} map[string]interface{}
+// @Success 200 {object} map[string]string "Image sent successfully"
+// @Failure 400 {object} map[string]string "Invalid request"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Security Bearer
 // @Router /messages/image [post]
 func (h *MessageHandler) SendImage(c *gin.Context) {
 	to := c.PostForm("to")

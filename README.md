@@ -19,7 +19,7 @@ An unofficial WhatsApp API written in Go using the whatsmeow library. This proje
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/hendrowibowo/whrabbit.git
+git clone https://github.com/w33ladalah/whrabbit.git
 cd whrabbit
 ```
 

@@ -33,20 +33,25 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Image sent successfully
           schema:
-            additionalProperties: true
+            additionalProperties:
+              type: string
             type: object
         "400":
-          description: Bad Request
+          description: Invalid request
           schema:
-            additionalProperties: true
+            additionalProperties:
+              type: string
             type: object
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
-            additionalProperties: true
+            additionalProperties:
+              type: string
             type: object
+      security:
+      - Bearer: []
       summary: Send an image message
       tags:
       - messages
@@ -66,20 +71,25 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Message sent successfully
           schema:
-            additionalProperties: true
+            additionalProperties:
+              type: string
             type: object
         "400":
-          description: Bad Request
+          description: Invalid request
           schema:
-            additionalProperties: true
+            additionalProperties:
+              type: string
             type: object
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
-            additionalProperties: true
+            additionalProperties:
+              type: string
             type: object
+      security:
+      - Bearer: []
       summary: Send a text message
       tags:
       - messages
@@ -96,6 +106,12 @@ paths:
           description: Switching Protocols
           schema:
             type: string
+        "500":
+          description: Error upgrading connection
+          schema:
+            additionalProperties:
+              type: string
+            type: object
       summary: WebSocket connection for WhatsApp QR code and status updates
       tags:
       - websocket

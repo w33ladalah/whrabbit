@@ -6,10 +6,12 @@ import (
 	"log"
 	"strings"
 
-	"github.com/hendrowibowo/whrabbit/internal/api/websocket"
 	_ "github.com/mattn/go-sqlite3" // SQLite driver
+	"github.com/w33ladalah/whrabbit/internal/api/websocket"
+	"github.com/w33ladalah/whrabbit/internal/config"
 	"go.mau.fi/whatsmeow"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
+	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/store/sqlstore"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
@@ -28,6 +30,14 @@ func NewClient(dbPath string) (*Client, error) {
 	container, err := sqlstore.New("sqlite3", fmt.Sprintf("file:%s?_foreign_keys=on", dbPath), waLog.Stdout("Database", "DEBUG", true))
 	if err != nil {
 		return nil, fmt.Errorf("error creating database container: %v", err)
+	}
+
+	cfg := config.LoadConfig()
+	store.DeviceProps.Os = proto.String(cfg.AppName)
+	store.DeviceProps.Version = &waProto.DeviceProps_AppVersion{
+		Primary:   proto.Uint32(1),
+		Secondary: proto.Uint32(0),
+		Tertiary:  proto.Uint32(0),
 	}
 
 	deviceStore, err := container.GetFirstDevice()

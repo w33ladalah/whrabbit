@@ -10,14 +10,14 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/hendrowibowo/whrabbit/docs"
-	"github.com/hendrowibowo/whrabbit/internal/api/handlers"
-	"github.com/hendrowibowo/whrabbit/internal/api/middleware"
-	"github.com/hendrowibowo/whrabbit/internal/config"
-	"github.com/hendrowibowo/whrabbit/internal/whatsapp"
 	_ "github.com/mattn/go-sqlite3" // SQLite driver
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"github.com/w33ladalah/whrabbit/docs"
+	"github.com/w33ladalah/whrabbit/internal/api/handlers"
+	"github.com/w33ladalah/whrabbit/internal/api/middleware"
+	"github.com/w33ladalah/whrabbit/internal/config"
+	"github.com/w33ladalah/whrabbit/internal/whatsapp"
 )
 
 // @title           Whrabbit WhatsApp API
@@ -121,10 +121,11 @@ func main() {
 	<-quit
 	log.Println("Shutting down server...")
 
-	// Create shutdown context with timeout
+	// Create a deadline for server shutdown
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
+	// Attempt graceful shutdown
 	if err := srv.Shutdown(ctx); err != nil {
 		log.Fatal("Server forced to shutdown:", err)
 	}
