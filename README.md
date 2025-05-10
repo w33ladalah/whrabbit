@@ -22,17 +22,20 @@ An unofficial WhatsApp API written in Go using the whatsmeow library. This proje
 ## Installation
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/w33ladalah/whrabbit.git
 cd whrabbit
 ```
 
 2. Install dependencies:
+
 ```bash
 go mod tidy
 ```
 
 3. Set up environment variables:
+
 ```bash
 # Development mode (using .env file)
 cp .env.example .env
@@ -47,6 +50,7 @@ export APP_VERSION=1.0.0
 ```
 
 4. Build the application:
+
 ```bash
 # Development build
 go build -o whrabbit
@@ -58,6 +62,7 @@ go build -ldflags "-X github.com/w33ladalah/whrabbit/internal/config.APIKey=your
 ## Usage
 
 1. Run the application:
+
 ```bash
 ./whrabbit
 ```
@@ -74,22 +79,25 @@ The API documentation is available at `http://localhost:8080/swagger/index.html`
 
 ### Authentication
 
-All API endpoints require authentication using an API key. Include the API key in the `Authorization` header:
+All API endpoints require authentication using an API key. Include the API key in the `X-API-Key` header:
 
-```
-Authorization: Bearer your_api_key_here
+```plaintext
+X-API-Key: your_api_key_here
 ```
 
 ### Endpoints
 
 #### WebSocket Connection
-```
+
+```bash
 GET /ws
 ```
+
 Establishes a WebSocket connection to receive WhatsApp QR codes and connection status updates.
 
 #### Send Text Message
-```
+
+```plaintext
 POST /api/v1/messages/text
 Content-Type: application/json
 
@@ -100,7 +108,8 @@ Content-Type: application/json
 ```
 
 #### Send Image Message
-```
+
+```plaintext
 POST /api/v1/messages/image
 Content-Type: multipart/form-data
 
@@ -114,14 +123,15 @@ Form fields:
 | Variable | Description | Default |
 |----------|-------------|---------|
 | API_KEY | API key for authentication | (required) |
-| BASE_URL | Base URL of the application | http://localhost:8080 |
+| BASE_URL | Base URL of the application | <http://localhost:8080> |
 | PORT | Port to run the server on | 8080 |
 | APP_NAME | Name of the application | whrabbit |
-| APP_VERSION | Version of the application | dev |
+| APP_VERSION | Version of the application | 0.0.1 |
 
 ## Development
 
 ### Project Structure
+
 ```
 .
 ├── docs/               # Swagger documentation
@@ -136,11 +146,13 @@ Form fields:
 ```
 
 ### Running Tests
+
 ```bash
 go test ./...
 ```
 
 ### Generating Swagger Documentation
+
 ```bash
 swag init -g main.go
 ```
