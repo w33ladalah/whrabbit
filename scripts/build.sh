@@ -2,7 +2,7 @@
 
 # Read .env file
 if [ -f .env ]; then
-    export $(cat .env | grep -v '^#' | xargs)
+    export "$(grep -v '^#' .env | xargs)"
 fi
 
 # Build with ldflags
