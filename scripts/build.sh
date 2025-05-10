@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if [ ! -f .env ]; then
+  echo "Error: Unable to find .env file. Please try to run this script from the root directory."
+  exit 1
+fi
+
 # Read .env file
 if [ -f .env ]; then
     export "$(grep -v '^#' .env | xargs)"

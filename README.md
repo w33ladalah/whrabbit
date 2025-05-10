@@ -52,11 +52,7 @@ export APP_VERSION=1.0.0
 4. Build the application:
 
 ```bash
-# Development build
-go build -o whrabbit
-
-# Production build with environment variables
-go build -ldflags "-X github.com/w33ladalah/whrabbit/internal/config.APIKey=your_api_key_here -X github.com/w33ladalah/whrabbit/internal/config.AppVersion=1.0.0" -o whrabbit
+./script/build.sh
 ```
 
 ## Usage
@@ -132,7 +128,7 @@ Form fields:
 
 ### Project Structure
 
-```
+```plaintext
 .
 ├── docs/               # Swagger documentation
 ├── internal/
