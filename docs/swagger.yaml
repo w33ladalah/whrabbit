@@ -1,0 +1,108 @@
+basePath: /api/v1
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: An unofficial WhatsApp API built with Go and whatsmeow.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Whrabbit WhatsApp API
+  version: "1.0"
+paths:
+  /messages/image:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Sends an image message to a WhatsApp number
+      parameters:
+      - description: Recipient's phone number
+        in: formData
+        name: to
+        required: true
+        type: string
+      - description: Image file
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Send an image message
+      tags:
+      - messages
+  /messages/text:
+    post:
+      consumes:
+      - application/json
+      description: Sends a text message to a WhatsApp number
+      parameters:
+      - description: Message details
+        in: body
+        name: message
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Send a text message
+      tags:
+      - messages
+  /ws:
+    get:
+      consumes:
+      - application/json
+      description: Establishes a WebSocket connection to receive WhatsApp QR codes
+        and connection status updates
+      produces:
+      - application/json
+      responses:
+        "101":
+          description: Switching Protocols
+          schema:
+            type: string
+      summary: WebSocket connection for WhatsApp QR code and status updates
+      tags:
+      - websocket
+securityDefinitions:
+  Bearer:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

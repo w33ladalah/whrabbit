@@ -34,6 +34,14 @@
             margin-top: 20px;
             color: #666;
         }
+        .success {
+            color: #128C7E;
+            font-weight: bold;
+        }
+        .error {
+            color: #dc3545;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -43,28 +51,54 @@
         <div id="status" class="status">Waiting for QR code...</div>
     </div>
     <script>
+        console.log('Connecting to WebSocket...');
         const ws = new WebSocket('ws://' + window.location.host + '/ws');
         const statusElement = document.getElementById('status');
         const qrcodeElement = document.getElementById('qrcode');
 
+        ws.onopen = function() {
+            console.log('WebSocket connection established');
+            statusElement.textContent = 'WebSocket connected, waiting for QR code...';
+        };
+
         ws.onmessage = function(event) {
+            console.log('Received WebSocket message:', event.data);
             const data = JSON.parse(event.data);
+
             if (data.type === 'qr') {
+                console.log('Received QR code, generating...');
                 // Generate QR code
                 const qr = qrcode(0, 'L');
                 qr.addData(data.code);
                 qr.make();
                 qrcodeElement.innerHTML = qr.createImgTag(5);
                 statusElement.textContent = 'Scan this QR code with WhatsApp on your phone';
+                statusElement.className = 'status';
+                console.log('QR code generated and displayed');
+            } else if (data.type === 'status') {
+                console.log('Received status update:', data.status);
+                statusElement.textContent = data.status;
+                if (data.status.includes('connected') || data.status.includes('success')) {
+                    statusElement.className = 'status success';
+                    qrcodeElement.innerHTML = ''; // Clear QR code
+                    console.log('Connection successful, cleared QR code');
+                } else if (data.status.includes('disconnected')) {
+                    statusElement.className = 'status error';
+                    console.log('Connection disconnected');
+                }
             }
         };
 
         ws.onclose = function() {
+            console.log('WebSocket connection closed');
             statusElement.textContent = 'Connection closed. Please refresh the page.';
+            statusElement.className = 'status error';
         };
 
-        ws.onerror = function() {
+        ws.onerror = function(error) {
+            console.error('WebSocket error:', error);
             statusElement.textContent = 'Connection error. Please refresh the page.';
+            statusElement.className = 'status error';
         };
     </script>
 </body>

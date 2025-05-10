@@ -34,19 +34,35 @@ func NewClient(dbPath string) (*Client, error) {
 	}
 
 	client := whatsmeow.NewClient(deviceStore, waLog.Stdout("Client", "DEBUG", true))
+	waClient := &Client{
+		Client:    client,
+		wsManager: websocket.NewManager(),
+	}
 
 	// Add default event handler
 	client.AddEventHandler(func(evt interface{}) {
 		switch v := evt.(type) {
 		case *events.Message:
 			log.Printf("Received message from %s: %s", v.Info.Sender, v.Message.GetConversation())
+		case *events.Connected:
+			log.Println("WhatsApp connected successfully")
+			if waClient.wsManager != nil {
+				waClient.wsManager.BroadcastConnectionStatus("WhatsApp connected successfully!")
+			}
+		case *events.Disconnected:
+			log.Println("WhatsApp disconnected")
+			if waClient.wsManager != nil {
+				waClient.wsManager.BroadcastConnectionStatus("WhatsApp disconnected")
+			}
 		}
 	})
 
-	return &Client{
-		Client:    client,
-		wsManager: websocket.NewManager(),
-	}, nil
+	// Check if already logged in
+	if deviceStore.ID != nil {
+		waClient.wsManager.BroadcastConnectionStatus("WhatsApp already connected!")
+	}
+
+	return waClient, nil
 }
 
 // Connect connects to WhatsApp and handles QR code if needed
@@ -65,6 +81,9 @@ func (c *Client) Connect(ctx context.Context) error {
 				fmt.Println("QR code:", evt.Code)
 			} else {
 				fmt.Println("Login event:", evt.Event)
+				if evt.Event == "success" {
+					c.wsManager.BroadcastConnectionStatus("WhatsApp connected successfully!")
+				}
 			}
 		}
 	} else {
@@ -73,13 +92,45 @@ func (c *Client) Connect(ctx context.Context) error {
 		if err != nil {
 			return fmt.Errorf("error connecting to WhatsApp: %v", err)
 		}
+		c.wsManager.BroadcastConnectionStatus("WhatsApp already connected!")
 	}
 	return nil
+}
+
+// Disconnect disconnects from WhatsApp and triggers QR code generation
+func (c *Client) Disconnect() {
+	c.Client.Disconnect()
+	c.wsManager.BroadcastConnectionStatus("WhatsApp disconnected")
+
+	// Clear the device store to force new login
+	c.Store.ID = nil
+
+	// Trigger new QR code generation
+	go func() {
+		ctx := context.Background()
+		qrChan, _ := c.GetQRChannel(ctx)
+		err := c.Client.Connect()
+		if err != nil {
+			log.Printf("Error connecting after disconnect: %v", err)
+			return
+		}
+		for evt := range qrChan {
+			if evt.Event == "code" {
+				c.wsManager.BroadcastQR(evt.Code)
+				fmt.Println("New QR code after disconnect:", evt.Code)
+			}
+		}
+	}()
 }
 
 // SetWebSocketManager sets the WebSocket manager for the client
 func (c *Client) SetWebSocketManager(manager *websocket.Manager) {
 	c.wsManager = manager
+}
+
+// GetWebSocketManager returns the WebSocket manager for the client
+func (c *Client) GetWebSocketManager() *websocket.Manager {
+	return c.wsManager
 }
 
 // ParseJID parses a string into a JID
