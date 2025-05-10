@@ -33,5 +33,5 @@ go.work
 whrabbit
 whrabbit.*
 
-built/*
-!built/.gitkeep
+build/*
+!build/.gitkeep
