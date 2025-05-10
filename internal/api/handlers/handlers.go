@@ -154,8 +154,14 @@ func (h *MessageHandler) SendImage(c *gin.Context) {
 	}
 	defer src.Close()
 
-	// TODO: Implement image sending
-	c.JSON(http.StatusOK, gin.H{"status": "Image sent"})
+	// Send the image using the WhatsApp client
+	err = h.client.SendImage(to, src)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "Image sent successfully"})
 }
 
 // NewEventHandler creates a new event handler function

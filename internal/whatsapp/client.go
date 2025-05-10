@@ -3,6 +3,7 @@ package whatsapp
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"strings"
 
@@ -188,6 +189,42 @@ func (c *Client) SendText(to string, message string) error {
 
 	msg := &waProto.Message{
 		Conversation: proto.String(message),
+	}
+
+	_, err = c.Client.SendMessage(context.Background(), recipient, msg)
+	return err
+}
+
+// SendImage sends an image message to a WhatsApp number
+func (c *Client) SendImage(to string, image io.Reader) error {
+	recipient, err := ParseJID(to)
+	if err != nil {
+		return fmt.Errorf("invalid recipient number: %v", err)
+	}
+
+	// Read image data
+	imageData, err := io.ReadAll(image)
+	if err != nil {
+		return fmt.Errorf("error reading image: %v", err)
+	}
+
+	// Upload image to WhatsApp
+	uploaded, err := c.Client.Upload(context.Background(), imageData, whatsmeow.MediaImage)
+	if err != nil {
+		return fmt.Errorf("error uploading image: %v", err)
+	}
+
+	msg := &waProto.Message{
+		ImageMessage: &waProto.ImageMessage{
+			URL:        &uploaded.URL,
+			Mimetype:   proto.String("image/jpeg"),
+			Caption:    proto.String(""),
+			FileSHA256: uploaded.FileSHA256,
+			FileLength: &uploaded.FileLength,
+			MediaKey:   uploaded.MediaKey,
+			DirectPath: &uploaded.DirectPath,
+			ViewOnce:   proto.Bool(false),
+		},
 	}
 
 	_, err = c.Client.SendMessage(context.Background(), recipient, msg)
