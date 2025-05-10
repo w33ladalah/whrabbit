@@ -9,11 +9,15 @@ An unofficial WhatsApp API written in Go using the whatsmeow library. This proje
 - Check connection status
 - QR code-based authentication
 - SQLite database for session storage
+- Swagger API documentation
+- WebSocket support for real-time updates
+- API key authentication
 
 ## Prerequisites
 
 - Go 1.21 or higher
 - SQLite3
+- WhatsApp account
 
 ## Installation
 
@@ -28,9 +32,27 @@ cd whrabbit
 go mod tidy
 ```
 
-3. Build the application:
+3. Set up environment variables:
 ```bash
+# Development mode (using .env file)
+cp .env.example .env
+# Edit .env with your configuration
+
+# Or set environment variables directly
+export API_KEY=your_api_key_here
+export BASE_URL=http://localhost:8080
+export PORT=8080
+export APP_NAME=whrabbit
+export APP_VERSION=1.0.0
+```
+
+4. Build the application:
+```bash
+# Development build
 go build -o whrabbit
+
+# Production build with environment variables
+go build -ldflags "-X github.com/w33ladalah/whrabbit/internal/config.APIKey=your_api_key_here -X github.com/w33ladalah/whrabbit/internal/config.AppVersion=1.0.0" -o whrabbit
 ```
 
 ## Usage
@@ -40,15 +62,35 @@ go build -o whrabbit
 ./whrabbit
 ```
 
-2. On first run, the application will display a QR code in the terminal. Scan this QR code with WhatsApp on your phone to authenticate.
+2. Open your browser and navigate to `http://localhost:8080`
 
-3. Once authenticated, the API will be available at `http://localhost:8080`
+3. Scan the displayed QR code with WhatsApp on your phone to authenticate.
 
-## API Endpoints
+4. Once authenticated, the API will be available at `http://localhost:8080/api/v1`
 
-### Send Text Message
+## API Documentation
+
+The API documentation is available at `http://localhost:8080/swagger/index.html` when the server is running.
+
+### Authentication
+
+All API endpoints require authentication using an API key. Include the API key in the `Authorization` header:
+
 ```
-POST /api/send/text
+Authorization: Bearer your_api_key_here
+```
+
+### Endpoints
+
+#### WebSocket Connection
+```
+GET /ws
+```
+Establishes a WebSocket connection to receive WhatsApp QR codes and connection status updates.
+
+#### Send Text Message
+```
+POST /api/v1/messages/text
 Content-Type: application/json
 
 {
@@ -57,50 +99,50 @@ Content-Type: application/json
 }
 ```
 
-### Send Image Message
+#### Send Image Message
 ```
-POST /api/send/image
+POST /api/v1/messages/image
 Content-Type: multipart/form-data
 
 Form fields:
 - to: Recipient's phone number (required)
 - image: Image file (required)
-- caption: Image caption (optional)
-
-Example using curl:
-curl -X POST http://localhost:8080/api/send/image \
-  -F "to=1234567890" \
-  -F "image=@/path/to/image.jpg" \
-  -F "caption=Check out this photo!"
 ```
 
-### Check Status
+## Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| API_KEY | API key for authentication | (required) |
+| BASE_URL | Base URL of the application | http://localhost:8080 |
+| PORT | Port to run the server on | 8080 |
+| APP_NAME | Name of the application | whrabbit |
+| APP_VERSION | Version of the application | dev |
+
+## Development
+
+### Project Structure
 ```
-GET /api/status
+.
+├── docs/               # Swagger documentation
+├── internal/
+│   ├── api/           # API handlers and middleware
+│   ├── config/        # Configuration management
+│   └── whatsapp/      # WhatsApp client implementation
+├── static/            # Static files (HTML, CSS)
+├── .env               # Environment variables (development)
+├── main.go           # Application entry point
+└── README.md         # This file
 ```
 
-## Response Format
-
-All responses are in JSON format:
-
-Success response:
-```json
-{
-    "status": "success",
-    "message": "Message sent successfully",
-    "details": {
-        "filename": "image.jpg",
-        "size": 123456,
-        "caption": "Check out this photo!"
-    }
-}
+### Running Tests
+```bash
+go test ./...
 ```
 
-Error response:
-```json
-{
-    "error": "Error message here"
-}
+### Generating Swagger Documentation
+```bash
+swag init -g main.go
 ```
 
 ## License
@@ -109,4 +151,14 @@ MIT
 
 ## Contributing
 
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## Acknowledgments
+
+- [whatsmeow](https://github.com/tulir/whatsmeow) - WhatsApp Web client library
+- [Gin](https://github.com/gin-gonic/gin) - Web framework
+- [Swagger](https://swagger.io/) - API documentation
