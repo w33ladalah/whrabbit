@@ -9,10 +9,12 @@ import (
 	"github.com/hendrowibowo/whrabbit/internal/api/websocket"
 	_ "github.com/mattn/go-sqlite3" // SQLite driver
 	"go.mau.fi/whatsmeow"
+	waProto "go.mau.fi/whatsmeow/binary/proto"
 	"go.mau.fi/whatsmeow/store/sqlstore"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 	waLog "go.mau.fi/whatsmeow/util/log"
+	"google.golang.org/protobuf/proto"
 )
 
 // Client wraps the WhatsApp client with additional functionality
@@ -53,6 +55,24 @@ func NewClient(dbPath string) (*Client, error) {
 			log.Println("WhatsApp disconnected")
 			if waClient.wsManager != nil {
 				waClient.wsManager.BroadcastConnectionStatus("WhatsApp disconnected")
+				// Clear the device store to force new login
+				waClient.Store.ID = nil
+				// Trigger new QR code generation
+				go func() {
+					ctx := context.Background()
+					qrChan, _ := waClient.GetQRChannel(ctx)
+					err := waClient.Client.Connect()
+					if err != nil {
+						log.Printf("Error connecting after disconnect: %v", err)
+						return
+					}
+					for evt := range qrChan {
+						if evt.Event == "code" {
+							waClient.wsManager.BroadcastQR(evt.Code)
+							fmt.Println("New QR code after disconnect:", evt.Code)
+						}
+					}
+				}()
 			}
 		}
 	})
@@ -147,4 +167,19 @@ func ParseJID(arg string) (types.JID, error) {
 		}
 		return types.NewJID(parts[0], parts[1]), nil
 	}
+}
+
+// SendText sends a text message to a WhatsApp number
+func (c *Client) SendText(to string, message string) error {
+	recipient, err := ParseJID(to)
+	if err != nil {
+		return fmt.Errorf("invalid recipient number: %v", err)
+	}
+
+	msg := &waProto.Message{
+		Conversation: proto.String(message),
+	}
+
+	_, err = c.Client.SendMessage(context.Background(), recipient, msg)
+	return err
 }

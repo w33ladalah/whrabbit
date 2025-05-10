@@ -108,8 +108,14 @@ func (h *MessageHandler) SendText(c *gin.Context) {
 		return
 	}
 
-	// TODO: Implement message sending
-	c.JSON(http.StatusOK, gin.H{"status": "Message sent"})
+	// Send the message using the WhatsApp client
+	err := h.client.SendText(req.To, req.Message)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "Message sent successfully"})
 }
 
 // SendImage sends an image message

@@ -27,22 +27,7 @@ func (m *Manager) AddClient(conn *websocket.Conn) {
 	m.clients[conn] = true
 	m.clientsMux.Unlock()
 
-	// Check if already connected
-	m.statusMux.RLock()
-	if m.isConnected {
-		err := conn.WriteJSON(map[string]string{
-			"type":   "status",
-			"status": "WhatsApp already connected!",
-		})
-		if err != nil {
-			log.Printf("Error sending connection status to new client: %v", err)
-		}
-		m.statusMux.RUnlock()
-		return
-	}
-	m.statusMux.RUnlock()
-
-	// Send the latest QR code to the new client if available
+	// Always send the latest QR code first
 	m.qrMux.RLock()
 	if m.latestQR != "" {
 		err := conn.WriteJSON(map[string]string{
@@ -54,6 +39,19 @@ func (m *Manager) AddClient(conn *websocket.Conn) {
 		}
 	}
 	m.qrMux.RUnlock()
+
+	// Then send connection status
+	m.statusMux.RLock()
+	if m.isConnected {
+		err := conn.WriteJSON(map[string]string{
+			"type":   "status",
+			"status": "WhatsApp already connected!",
+		})
+		if err != nil {
+			log.Printf("Error sending connection status to new client: %v", err)
+		}
+	}
+	m.statusMux.RUnlock()
 }
 
 func (m *Manager) RemoveClient(conn *websocket.Conn) {
@@ -68,6 +66,11 @@ func (m *Manager) BroadcastQR(qrCode string) {
 	m.qrMux.Lock()
 	m.latestQR = qrCode
 	m.qrMux.Unlock()
+
+	// Reset connection state when new QR code is generated
+	m.statusMux.Lock()
+	m.isConnected = false
+	m.statusMux.Unlock()
 
 	m.clientsMux.RLock()
 	defer m.clientsMux.RUnlock()

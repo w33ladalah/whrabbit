@@ -12,6 +12,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/hendrowibowo/whrabbit/docs"
 	"github.com/hendrowibowo/whrabbit/internal/api/handlers"
+	"github.com/hendrowibowo/whrabbit/internal/api/middleware"
+	"github.com/hendrowibowo/whrabbit/internal/config"
 	"github.com/hendrowibowo/whrabbit/internal/whatsapp"
 	_ "github.com/mattn/go-sqlite3" // SQLite driver
 	swaggerFiles "github.com/swaggo/files"
@@ -39,6 +41,12 @@ import (
 // @description Type "Bearer" followed by a space and JWT token.
 
 func main() {
+	// Load configuration
+	cfg := config.LoadConfig()
+	if cfg.APIKey == "" {
+		log.Fatal("API_KEY environment variable is required")
+	}
+
 	// Initialize WhatsApp client
 	client, err := whatsapp.NewClient("whatsmeow.db")
 	if err != nil {
@@ -59,7 +67,7 @@ func main() {
 	docs.SwaggerInfo.Title = "Whrabbit WhatsApp API"
 	docs.SwaggerInfo.Description = "An unofficial WhatsApp API built with Go and whatsmeow."
 	docs.SwaggerInfo.Version = "1.0"
-	docs.SwaggerInfo.Host = "localhost:8080"
+	docs.SwaggerInfo.Host = cfg.BaseURL
 	docs.SwaggerInfo.BasePath = "/api/v1"
 	docs.SwaggerInfo.Schemes = []string{"http", "https"}
 
@@ -70,8 +78,9 @@ func main() {
 	// WebSocket endpoint
 	router.GET("/ws", wsHandler.HandleWebSocket)
 
-	// API routes
+	// API routes with authentication
 	api := router.Group("/api/v1")
+	api.Use(middleware.APIKeyAuth())
 	{
 		// Message routes
 		api.POST("/messages/text", msgHandler.SendText)
@@ -88,7 +97,7 @@ func main() {
 
 	// Create HTTP server
 	srv := &http.Server{
-		Addr:    ":8080",
+		Addr:    ":" + cfg.ServerPort,
 		Handler: router,
 	}
 
@@ -116,7 +125,6 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	// Attempt graceful shutdown
 	if err := srv.Shutdown(ctx); err != nil {
 		log.Fatal("Server forced to shutdown:", err)
 	}
